@@ -906,6 +906,21 @@ curl -vI https://www.structsim.com   # falhou com SEC_E_ILLEGAL_MESSAGE -> certi
 
 Isso confirmou exatamente o que o painel do Render já mostrava (`structsim.com`: Certificate Issued; `www.structsim.com`: Certificate Pending) — como o domínio raiz redireciona pro `www`, o site ficou temporariamente inacessível pelo domínio novo até o certificado do `www` terminar de ser emitido. O link antigo (`paulovs.onrender.com`) continuou funcionando normalmente o tempo todo.
 
+## 31. Favicon (ícone na aba do navegador)
+
+O site ainda não tinha um **favicon** — o ícone pequeno que aparece na aba do navegador, nos favoritos, etc. Sem ele, o navegador mostra um ícone genérico (um globo).
+
+Em vez de criar um do zero, reaproveitamos o ícone de engrenagem em SVG já usado no cabeçalho (seção 25) — mesma identidade visual, sem duplicar esforço. A diferença é que o favicon precisa "se virar sozinho": o ícone do cabeçalho usa `stroke="currentColor"` (herda a cor do texto ao redor, controlada pelo CSS), mas um favicon é um arquivo isolado, sem CSS nenhum por perto — por isso, em `static/favicon.svg`, as cores foram **fixadas diretamente no SVG**: fundo circular azul-petróleo (`#2c3e50`, a cor principal do site) com a engrenagem em ciano (`#5fd0ff`, a cor de destaque) — assim ele fica legível tanto em navegador com tema claro quanto escuro.
+
+No `base.html`:
+
+```html
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+```
+
+- **SVG como favicon** é suportado por todos os navegadores modernos (Chrome, Firefox, Edge, Safari recente) — não precisamos gerar várias versões em `.png`/`.ico` de tamanhos diferentes, como era necessário antigamente.
+- Por estar no `base.html`, o favicon já aparece nas 4 páginas automaticamente.
+
 ## Glossário rápido
 
 | Termo | O que é |
@@ -953,3 +968,4 @@ Isso confirmou exatamente o que o painel do Render já mostrava (`structsim.com`
 | **Registro DNS (A, CNAME, ANAME/ALIAS)** | Instruções que dizem à internet como encontrar um domínio. `A` aponta um nome direto pra um IP; `CNAME` aponta um nome pra *outro nome* (apelido); `ANAME`/`ALIAS` é uma variação de CNAME que pode ser usada no domínio raiz (onde CNAME puro não é permitido). |
 | **SSL/TLS, certificado** | Tecnologia que permite conexões HTTPS (criptografadas). Serviços como o Render emitem certificados automaticamente (via Let's Encrypt) depois que o domínio é verificado — é uma etapa separada da configuração de DNS, que pode levar um tempo a mais. |
 | **Propagação de DNS** | O tempo que leva para uma mudança de DNS ser reconhecida por todos os servidores da internet — pode ser quase instantâneo ou levar até 24h. |
+| **Favicon** | O ícone pequeno associado a um site, exibido na aba do navegador, nos favoritos, etc. |
