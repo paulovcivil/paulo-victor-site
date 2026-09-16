@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Paulo Victor{% endblock %}</title>
+    <title>{% block title %}Structural Simulation{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -23,7 +23,7 @@
                     <line x1="16.7" y1="7.3" x2="18.4" y2="5.6"/>
                 </g>
             </svg>
-            Paulo Victor
+            Structural Simulation
         </a>
         <nav>
             <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' }}">Home</a>
@@ -40,16 +40,17 @@
     <footer>
         <div class="footer-content">
             <div class="footer-brand">
-                <a class="brand" href="{{ url_for('home') }}">Paulo Victor</a>
-                <p class="footer-tagline">Civil Engineering &middot; Computational Structural Modeling</p>
+                <a class="brand" href="{{ url_for('home') }}">Structural Simulation</a>
+                <p class="footer-tagline">Computational Methods for Civil &amp; Structural Engineering</p>
             </div>
             <ul class="footer-links">
+                <li><a href="{{ url_for('about') }}">About</a></li>
                 <li><a href="{{ url_for('projects') }}">Projects</a></li>
                 <li><a href="mailto:paulo.vcivil.souza@gmail.com">Email</a></li>
                 <li><a href="https://www.linkedin.com/in/paulovsales/" target="_blank" rel="noopener">LinkedIn</a></li>
             </ul>
         </div>
-        <p class="footer-copy">&copy; {{ current_year }} Paulo Victor. Built with Flask.</p>
+        <p class="footer-copy">&copy; {{ current_year }} Structural Simulation. Built with Flask.</p>
     </footer>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 Este documento explica o que foi feito até agora no projeto e por quê, acompanhando os tópicos do curso (HTML, CSS, Flask, páginas estáticas x dinâmicas).
 
-**🌐 Site no ar:** https://paulovs.onrender.com &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
+**🌐 Site no ar:** https://paulovs.onrender.com (domínio próprio `structsim.com` em andamento, seção 29) &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
 
 > **Nota:** este arquivo é um **log cronológico** — cada seção reflete o estado do projeto *no momento em que foi escrita*. A partir da seção 13, todo o código (rotas, nomes de arquivo, variáveis) foi traduzido para inglês. Por isso, trechos de código nas seções anteriores a ela ainda podem mostrar nomes antigos em português (`/sobre`, `sobre.html`, `dados`, etc.) — são registro histórico das decisões tomadas naquele passo, não o estado atual do código. Para ver o estado atual, veja a seção 1 (estrutura de pastas, sempre mantida atualizada) e a seção 13.
 
@@ -850,9 +850,30 @@ Testamos diretamente contra a URL pública (não só visualmente): as 4 páginas
   - **Serviço externo pronto** (ex: Formspree, Airtable) — pouco código, mas depende de um serviço de terceiros.
   - **Banco de dados de verdade** (ex: PostgreSQL gerenciado, que o Render oferece com um plano gratuito) — solução mais robusta e a que mais se parece com o que se usa profissionalmente, mas exige aprender o básico de bancos de dados relacionais e um ORM (ex: SQLAlchemy).
 - [ ] Estudar diferença entre Django e Flask (Flask é "micro-framework": você escolhe as peças; Django já vem com muita coisa pronta).
-- [ ] Domínio customizado (opcional).
+- [x] Domínio customizado — nome escolhido (`structsim.com`), compra em andamento (ver seção 29).
 
-## Glossário rápido
+## 29. Mudança de escopo: de portfólio pessoal para site temático
+
+**Contexto:** ao pesquisar domínio, o usuário decidiu que o site vai deixar de ser exclusivamente um portfólio pessoal e passar a representar um projeto mais amplo sobre **métodos computacionais aplicados à engenharia civil/estrutural** — ele (Paulo Victor) continua sendo o autor/responsável, mas a "marca" do site não é mais o nome dele.
+
+**Domínio escolhido:** `structsim.com` ("Structural Simulation"). Antes de decidir, verificamos a disponibilidade real de várias opções via **RDAP** (o protocolo padrão que substituiu o WHOIS — uma consulta direta ao registro oficial do `.com`, sem depender de scraping de sites de registradores) e descartamos nomes já registrados (`paulovictor.com`, `civilsim.com`, `appliedcompute.com`, entre outros).
+
+**Decisão sobre a página About:** como o site passa a ter uma marca própria, ficou a dúvida se a página About deveria continuar identificando o usuário pelo nome. Decisão: **sim** — é um padrão comum em sites/blogs temáticos ter uma marca geral (aqui, "Structural Simulation") com uma página "About" que apresenta a pessoa real por trás do projeto. Então a bio, foto, formação e LinkedIn na página About continuam exatamente como estavam.
+
+**O que foi trocado** (em `templates/base.html`, que é herdado por todas as páginas — a mudança precisou de edição em um lugar só para cabeçalho/rodapé):
+
+| Onde | Antes | Depois |
+|---|---|---|
+| Marca no cabeçalho | Paulo Victor | Structural Simulation |
+| Marca no rodapé | Paulo Victor | Structural Simulation |
+| Frase do rodapé | "Civil Engineering · Computational Structural Modeling" | "Computational Methods for Civil & Structural Engineering" |
+| Copyright do rodapé | © ano Paulo Victor | © ano Structural Simulation |
+| `<title>` padrão do site | Paulo Victor | Structural Simulation |
+| `<title>` de cada página (`index.html`, `projects.html`, `contact.html`) | "... \| Paulo Victor" | "... \| Structural Simulation" |
+
+**O que NÃO foi trocado (de propósito):** a página `about.html` continua usando a variável `{{ name }}` (vinda de `app.py`, `name="Paulo Victor"`) no título da aba, no `<h1>`, no texto alternativo da foto e em todo o conteúdo da bio. Também aprovetamos para adicionar um link "About" na lista de links do rodapé (antes só tinha Projects/Email/LinkedIn) — agora que a marca não é mais o nome da pessoa, faz mais sentido deixar explícito onde encontrar "quem está por trás do site".
+
+**Ainda pendente:** a compra efetiva do domínio `structsim.com` e a configuração de DNS + Custom Domain no Render (fica pra quando o usuário finalizar a compra).
 
 | Termo | O que é |
 |---|---|
@@ -895,3 +916,4 @@ Testamos diretamente contra a URL pública (não só visualmente): as 4 páginas
 | **Build Command** | Comando que o serviço de hospedagem roda para preparar a aplicação antes de iniciá-la (aqui, instalar as dependências do `requirements.txt`). |
 | **Start Command** | Comando que efetivamente liga a aplicação em produção (aqui, `gunicorn app:app`). |
 | **Spin down / hibernar** | Comportamento comum em planos gratuitos de hospedagem: o servidor desliga sozinho após um tempo sem receber requisições, e "acorda" (mais lentamente) na próxima visita. |
+| **RDAP** | Protocolo padrão de consulta de registro de domínios (substituto do WHOIS) — permite checar se um domínio está disponível diretamente na fonte oficial. |
