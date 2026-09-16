@@ -2,6 +2,8 @@
 
 Este documento explica o que foi feito até agora no projeto e por quê, acompanhando os tópicos do curso (HTML, CSS, Flask, páginas estáticas x dinâmicas).
 
+**🌐 Site no ar:** https://paulovs.onrender.com &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
+
 > **Nota:** este arquivo é um **log cronológico** — cada seção reflete o estado do projeto *no momento em que foi escrita*. A partir da seção 13, todo o código (rotas, nomes de arquivo, variáveis) foi traduzido para inglês. Por isso, trechos de código nas seções anteriores a ela ainda podem mostrar nomes antigos em português (`/sobre`, `sobre.html`, `dados`, etc.) — são registro histórico das decisões tomadas naquele passo, não o estado atual do código. Para ver o estado atual, veja a seção 1 (estrutura de pastas, sempre mantida atualizada) e a seção 13.
 
 ## 1. Estrutura de pastas
@@ -820,16 +822,26 @@ Detalhando o que ainda falta fazer, em ordem, com o porquê de cada etapa.
   Esse comando do GitHub CLI faz três coisas de uma vez: cria o repositório `paulo-victor-site` na conta do GitHub, configura o repositório local para apontar pra ele (`remote origin`), e já envia o commit (`push`).
 - Repositório público: **https://github.com/paulovcivil/paulo-victor-site**
 
-### 28.3. Configurar o serviço no Render
+### 28.3. Configurar o serviço no Render ✅
 
-- [ ] Criar conta gratuita no Render e conectar ao repositório do GitHub.
-- [ ] Configurar **Build Command** (`pip install -r requirements.txt`) e **Start Command** (`gunicorn app:app`).
-- [ ] Configurar as **variáveis de ambiente no painel do Render** (`SECRET_KEY`, e opcionalmente `FLASK_DEBUG`) — o `.env` local nunca vai para o Git nem para o Render; cada ambiente (sua máquina, o Render) tem sua própria cópia dessas variáveis, configurada no lugar certo.
+- [x] Criar conta gratuita no Render e conectar ao repositório do GitHub.
+- [x] Configurar **Build Command** (`pip install -r requirements.txt`) e **Start Command** (`gunicorn app:app`).
+- [x] Configurar as **variáveis de ambiente no painel do Render** (`SECRET_KEY`) — o `.env` local nunca vai para o Git nem para o Render; cada ambiente (sua máquina, o Render) tem sua própria cópia dessas variáveis, configurada no lugar certo.
 
-### 28.4. Deploy e verificação
+**O que aconteceu:** o Render, ao conectar no repositório, **detectou sozinho** que era um projeto Python e já preencheu o Build Command e o Start Command corretamente — o Start Command veio certo porque o Render lê o `Procfile` que criamos na seção 28.1. Não precisamos digitar nada manualmente ali.
 
-- [ ] Deploy inicial, acompanhar os logs de build/start no painel do Render.
-- [ ] Testar as 4 páginas e o formulário de contato já no ar (numa URL pública tipo `algumacoisa.onrender.com`).
+Foi gerada uma `SECRET_KEY` **nova e diferente da usada em desenvolvimento** (com `python -c "import secrets; print(secrets.token_hex(32))"` — gera uma sequência aleatória de 64 caracteres hexadecimais) e configurada só no painel do Render, nunca escrita em nenhum arquivo do projeto. Usar uma chave diferente por ambiente é a prática correta: se uma vazar, a outra continua segura.
+
+### 28.4. Deploy e verificação ✅
+
+- [x] Deploy inicial, acompanhar os logs de build/start no painel do Render.
+- [x] Testar as 4 páginas e o formulário de contato já no ar (numa URL pública tipo `algumacoisa.onrender.com`).
+
+**O site está no ar:** **https://paulovs.onrender.com**
+
+Testamos diretamente contra a URL pública (não só visualmente): as 4 páginas (`/`, `/about`, `/projects`, `/contact`), os arquivos estáticos (CSS, imagens, o vídeo do pêndulo, os PDFs dos artigos) e o fluxo completo do formulário de contato (`POST` → redirecionamento `302` → confirmação aparece uma vez → some no refresh) — tudo respondendo exatamente como em desenvolvimento. O fato da sessão do formulário funcionar confirma que a `SECRET_KEY` configurada no Render está correta (sem ela, o Flask nem conseguiria assinar o cookie de sessão).
+
+**Característica do plano gratuito:** o Render avisa que a instância grátis "hiberna" depois de um tempo sem uso, e a primeira requisição depois disso pode demorar uns 50 segundos pra responder (o servidor precisa "acordar"). Isso é normal no plano free — não é um bug, é a forma do Render economizar recursos entre planos gratuitos. Requisições seguintes voltam a ser rápidas.
 
 ### Depois do site estar no ar (não bloqueia o deploy)
 
@@ -880,3 +892,6 @@ Detalhando o que ainda falta fazer, em ordem, com o porquê de cada etapa.
 | **Remote (Git)** | Um apelido para o endereço de um repositório em outro lugar (ex: `origin` apontando pro GitHub), usado por comandos como `git push`/`git pull`. |
 | **`gh` (GitHub CLI)** | Ferramenta de linha de comando oficial do GitHub, que permite criar repositórios, autenticar e interagir com o GitHub sem usar o navegador. |
 | **Personal Access Token (PAT)** | Uma "senha alternativa" do GitHub, gerada manualmente e com permissões configuráveis (escopos), usada para autenticar ferramentas e scripts em vez da senha da conta. |
+| **Build Command** | Comando que o serviço de hospedagem roda para preparar a aplicação antes de iniciá-la (aqui, instalar as dependências do `requirements.txt`). |
+| **Start Command** | Comando que efetivamente liga a aplicação em produção (aqui, `gunicorn app:app`). |
+| **Spin down / hibernar** | Comportamento comum em planos gratuitos de hospedagem: o servidor desliga sozinho após um tempo sem receber requisições, e "acorda" (mais lentamente) na próxima visita. |
