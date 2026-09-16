@@ -2,7 +2,7 @@
 
 Este documento explica o que foi feito até agora no projeto e por quê, acompanhando os tópicos do curso (HTML, CSS, Flask, páginas estáticas x dinâmicas).
 
-**🌐 Site no ar:** https://paulovs.onrender.com (domínio próprio `structsim.com` em andamento, seção 29) &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
+**🌐 Site no ar:** https://paulovs.onrender.com &middot; domínio próprio **structsim.com** conectado (certificado HTTPS do `www` ainda sendo emitido, seção 30) &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
 
 > **Nota:** este arquivo é um **log cronológico** — cada seção reflete o estado do projeto *no momento em que foi escrita*. A partir da seção 13, todo o código (rotas, nomes de arquivo, variáveis) foi traduzido para inglês. Por isso, trechos de código nas seções anteriores a ela ainda podem mostrar nomes antigos em português (`/sobre`, `sobre.html`, `dados`, etc.) — são registro histórico das decisões tomadas naquele passo, não o estado atual do código. Para ver o estado atual, veja a seção 1 (estrutura de pastas, sempre mantida atualizada) e a seção 13.
 
@@ -873,7 +873,40 @@ Testamos diretamente contra a URL pública (não só visualmente): as 4 páginas
 
 **O que NÃO foi trocado (de propósito):** a página `about.html` continua usando a variável `{{ name }}` (vinda de `app.py`, `name="Paulo Victor"`) no título da aba, no `<h1>`, no texto alternativo da foto e em todo o conteúdo da bio. Também aprovetamos para adicionar um link "About" na lista de links do rodapé (antes só tinha Projects/Email/LinkedIn) — agora que a marca não é mais o nome da pessoa, faz mais sentido deixar explícito onde encontrar "quem está por trás do site".
 
-**Ainda pendente:** a compra efetiva do domínio `structsim.com` e a configuração de DNS + Custom Domain no Render (fica pra quando o usuário finalizar a compra).
+## 30. Conectando o domínio próprio (`structsim.com`) ao Render
+
+Com o domínio comprado (Namecheap, seção 29), faltava apontar ele pro site hospedado no Render. O processo tem duas pontas: **pedir pro Render** quais registros de DNS ele precisa, e **criar esses registros** no painel do Namecheap.
+
+**No Render:** Settings do serviço → Custom Domains → Add Custom Domain, feito duas vezes (`structsim.com` e `www.structsim.com`). O Render devolveu:
+
+| Domínio | Tipo pedido | Valor |
+|---|---|---|
+| `www.structsim.com` | CNAME | `paulovs.onrender.com` |
+| `structsim.com` (raiz) | ANAME/ALIAS (ou A, se o provedor não suportar) | IP `216.24.57.1` |
+
+**Por que o domínio raiz não pode usar CNAME:** é uma regra do próprio protocolo DNS — um registro CNAME diz "esse nome é só um apelido, resolva o nome de verdade e pronto", e o domínio raiz (`@`) já precisa poder ter outros tipos de registro (como o `MX`, de e-mail). Por isso, serviços como o Render sugerem um registro **ANAME/ALIAS** (uma versão "inteligente" de CNAME que dá pra usar na raiz) quando o provedor de DNS suporta, e caem para um registro **A** comum (aponta direto pra um IP fixo) quando não suportam — foi o nosso caso, já que o Namecheap não tem ANAME/ALIAS no plano usado.
+
+**No Namecheap:** Advanced DNS do domínio → removidos os registros padrão que já vinham lá (apontavam pra uma página de "em construção" do próprio Namecheap) → criados:
+
+| Type | Host | Value |
+|---|---|---|
+| A Record | `@` | `216.24.57.1` |
+| CNAME Record | `www` | `paulovs.onrender.com` |
+
+Voltando no Render e clicando em **Verify**, a verificação passou nos dois domínios.
+
+**Certificado SSL (HTTPS):** depois de verificar o domínio, o Render emite automaticamente um certificado grátis (Let's Encrypt) pra cada um. Isso acontece numa etapa **separada e assíncrona** — pode demorar de minutos a cerca de uma hora. Enquanto isso, tentativas de acessar por HTTPS falham com erro de "canal seguro"/TLS, o que é esperado e **não** significa que o DNS está errado.
+
+**Diagnóstico usado para confirmar isso:** o `Invoke-WebRequest` do PowerShell dava erro genérico de TLS tanto pro domínio com certificado pronto quanto pro que ainda não tinha — pouco útil pra diferenciar os dois casos. Usamos o `curl` (mais tolerante/detalhado) para investigar melhor:
+
+```
+curl -vI https://structsim.com       # conectou! certificado já emitido, respondeu 301 redirecionando pro www
+curl -vI https://www.structsim.com   # falhou com SEC_E_ILLEGAL_MESSAGE -> certificado ainda pendente
+```
+
+Isso confirmou exatamente o que o painel do Render já mostrava (`structsim.com`: Certificate Issued; `www.structsim.com`: Certificate Pending) — como o domínio raiz redireciona pro `www`, o site ficou temporariamente inacessível pelo domínio novo até o certificado do `www` terminar de ser emitido. O link antigo (`paulovs.onrender.com`) continuou funcionando normalmente o tempo todo.
+
+## Glossário rápido
 
 | Termo | O que é |
 |---|---|
@@ -917,3 +950,6 @@ Testamos diretamente contra a URL pública (não só visualmente): as 4 páginas
 | **Start Command** | Comando que efetivamente liga a aplicação em produção (aqui, `gunicorn app:app`). |
 | **Spin down / hibernar** | Comportamento comum em planos gratuitos de hospedagem: o servidor desliga sozinho após um tempo sem receber requisições, e "acorda" (mais lentamente) na próxima visita. |
 | **RDAP** | Protocolo padrão de consulta de registro de domínios (substituto do WHOIS) — permite checar se um domínio está disponível diretamente na fonte oficial. |
+| **Registro DNS (A, CNAME, ANAME/ALIAS)** | Instruções que dizem à internet como encontrar um domínio. `A` aponta um nome direto pra um IP; `CNAME` aponta um nome pra *outro nome* (apelido); `ANAME`/`ALIAS` é uma variação de CNAME que pode ser usada no domínio raiz (onde CNAME puro não é permitido). |
+| **SSL/TLS, certificado** | Tecnologia que permite conexões HTTPS (criptografadas). Serviços como o Render emitem certificados automaticamente (via Let's Encrypt) depois que o domínio é verificado — é uma etapa separada da configuração de DNS, que pode levar um tempo a mais. |
+| **Propagação de DNS** | O tempo que leva para uma mudança de DNS ser reconhecida por todos os servidores da internet — pode ser quase instantâneo ou levar até 24h. |
