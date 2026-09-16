@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Contact | Paulo Victor{% endblock %}
+
+{% block content %}
+<main>
+    <section class="contact">
+        <h2>Contact</h2>
+
+        <div class="contact-intro">
+            <img
+                class="profile-photo"
+                src="{{ url_for('static', filename='img/eu_contato.png') }}"
+                alt="Photo of Paulo Victor"
+            >
+            <div>
+                <p>
+                    Feel free to reach out directly using the details below, or send a
+                    message through the form.
+                </p>
+                <ul class="contact-info">
+                    <li><strong>Email:</strong> <a href="mailto:paulo.vcivil.souza@gmail.com">paulo.vcivil.souza@gmail.com</a></li>
+                    <li><strong>Academic email:</strong> <a href="mailto:paulo.victors@usp.br">paulo.victors@usp.br</a></li>
+                    <li><strong>Phone:</strong> <a href="tel:+5532999720148">+55 32 9 9972-0148</a></li>
+                    <li><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/paulovsales/" target="_blank" rel="noopener">linkedin.com/in/paulovsales</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Send a message</h3>
+        <form action="{{ url_for('contact') }}" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Send</button>
+        </form>
+
+        {% if submitted %}
+        <section class="result">
+            <h2>Submission received:</h2>
+            <p><strong>Name:</strong> {{ submitted.name }}</p>
+            <p><strong>Phone:</strong> {{ submitted.phone }}</p>
+            <p><strong>Email:</strong> {{ submitted.email }}</p>
+        </section>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

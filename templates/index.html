@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Paulo Victor | Civil Engineering & Computational Modeling{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <span class="hero-tag">Civil Engineering &middot; Computational &amp; AI-Driven Structural Modeling</span>
+        <h2>Simulating structural behavior before it happens on site</h2>
+        <p>
+            I combine the Finite Element Method (FEM), computational modeling and artificial
+            intelligence to analyze and predict the structural response of civil engineering
+            projects &mdash; from stress and displacement fields to data-driven pattern
+            analysis &mdash; bridging numerical simulation with real construction experience.
+        </p>
+        <div class="hero-buttons">
+            <a class="btn btn-primary" href="{{ url_for('about') }}">About me</a>
+            <a class="btn btn-secondary" href="{{ url_for('contact') }}">Get in touch</a>
+        </div>
+    </div>
+</section>
+
+<main>
+    <section class="cards">
+        <article class="card">
+            <h3>Finite Element Method</h3>
+            <p>
+                Discretizing complex structures into simple elements to numerically simulate
+                how loads, stresses and deformations distribute across an entire geometry.
+            </p>
+        </article>
+
+        <article class="card">
+            <h3>Computational &amp; AI-Driven Modeling</h3>
+            <p>
+                Building numerical and data-driven models &mdash; including machine learning
+                applied to fractal characterization &mdash; to support structural decisions
+                before construction begins.
+            </p>
+        </article>
+
+        <article class="card">
+            <h3>Structural Analysis &amp; Project Controls</h3>
+            <p>
+                Combining hands-on site experience with structural verification, planning and
+                cost/schedule control for safer, more efficient projects.
+            </p>
+        </article>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Paulo Victor{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <a class="brand" href="{{ url_for('home') }}">
+            <svg class="brand-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5.5"/>
+                    <circle cx="12" cy="12" r="2"/>
+                    <line x1="12" y1="3" x2="12" y2="5.3"/>
+                    <line x1="12" y1="18.7" x2="12" y2="21"/>
+                    <line x1="3" y1="12" x2="5.3" y2="12"/>
+                    <line x1="18.7" y1="12" x2="21" y2="12"/>
+                    <line x1="5.6" y1="5.6" x2="7.3" y2="7.3"/>
+                    <line x1="16.7" y1="16.7" x2="18.4" y2="18.4"/>
+                    <line x1="5.6" y1="18.4" x2="7.3" y2="16.7"/>
+                    <line x1="16.7" y1="7.3" x2="18.4" y2="5.6"/>
+                </g>
+            </svg>
+            Paulo Victor
+        </a>
+        <nav>
+            <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' }}">Home</a>
+            <a href="{{ url_for('about') }}" class="{{ 'active' if request.endpoint == 'about' }}">About</a>
+            <a href="{{ url_for('projects') }}" class="{{ 'active' if request.endpoint == 'projects' }}">Projects</a>
+            <a href="{{ url_for('contact') }}" class="{{ 'active' if request.endpoint == 'contact' }}">Contact</a>
+        </nav>
+    </header>
+
+    <div class="page-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <a class="brand" href="{{ url_for('home') }}">Paulo Victor</a>
+                <p class="footer-tagline">Civil Engineering &middot; Computational Structural Modeling</p>
+            </div>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('projects') }}">Projects</a></li>
+                <li><a href="mailto:paulo.vcivil.souza@gmail.com">Email</a></li>
+                <li><a href="https://www.linkedin.com/in/paulovsales/" target="_blank" rel="noopener">LinkedIn</a></li>
+            </ul>
+        </div>
+        <p class="footer-copy">&copy; {{ current_year }} Paulo Victor. Built with Flask.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}About | {{ name }}{% endblock %}
+
+{% block content %}
+<main>
+    <section class="about">
+        <div class="about-header">
+            <img
+                class="profile-photo"
+                src="{{ url_for('static', filename='img/eu.png') }}"
+                alt="Photo of {{ name }}"
+            >
+            <div>
+                <h1>{{ name }}</h1>
+                <p class="role">Civil Engineer &middot; Computational Structural Engineering</p>
+            </div>
+        </div>
+
+        <h2>About</h2>
+
+        <p>
+            Civil Engineer graduated from the Federal University of Juiz de Fora (UFJF) and
+            currently pursuing a Master's degree in Civil Engineering at the University of
+            São Paulo (USP), with a focus on computational structural engineering and
+            artificial intelligence applied to structural modeling.
+        </p>
+
+        <p>
+            My background combines construction site experience, project planning and
+            engineering research. At OMP Engenharia, I supported site operations for a
+            high-end residential project, monitoring schedules, measurements, subcontractors,
+            structural work and finishes. I also contributed to R&amp;D projects involving
+            Python, numerical modeling and data analysis, including a Petrobras-sponsored
+            project focused on the fractal analysis of complex data.
+        </p>
+
+        <p>
+            I am interested in structural engineering, construction planning, project
+            controls, BIM and digital engineering. I bring a practical and analytical
+            approach to problem-solving, work well in multidisciplinary teams and maintain a
+            strong focus on quality, safety, cost control and deadlines.
+        </p>
+
+        <h3>Technical toolkit</h3>
+        <ul class="skills">
+            <li>Python</li>
+            <li>MS Project</li>
+            <li>AutoCAD</li>
+            <li>Revit</li>
+            <li>ABAQUS</li>
+            <li>Ftool</li>
+            <li>Power BI</li>
+        </ul>
+
+        <h2>Education</h2>
+        <div class="education">
+            <article class="education-entry">
+                <img
+                    class="education-logo"
+                    src="{{ url_for('static', filename='img/usp.png') }}"
+                    alt="USP logo"
+                >
+                <div>
+                    <h3><a href="https://www.poli.usp.br/ppgec/" target="_blank" rel="noopener">University of São Paulo (USP)</a></h3>
+                    <p class="period">Master's Degree, Civil Engineering &middot; Jan 2026 &ndash; Dec 2028</p>
+                    <p>
+                        Currently pursuing an MSc in Civil Engineering &mdash; Structures at the
+                        Polytechnic School of USP, with graduate training covering structural
+                        analysis, solid mechanics and structural dynamics.
+                    </p>
+                </div>
+            </article>
+
+            <article class="education-entry">
+                <img
+                    class="education-logo"
+                    src="{{ url_for('static', filename='img/ufjf.png') }}"
+                    alt="UFJF logo"
+                >
+                <div>
+                    <h3><a href="https://www2.ufjf.br/engenhariacivil/" target="_blank" rel="noopener">Federal University of Juiz de Fora (UFJF)</a></h3>
+                    <p class="period">Bachelor's Degree, Civil Engineering &middot; Jan 2019 &ndash; Oct 2025</p>
+                    <p>
+                        Completed a broad Civil Engineering program covering structural and
+                        geotechnical engineering, soil mechanics and foundations, construction
+                        materials, project design and construction planning. Worked as a
+                        Programming Teaching Assistant for 18 months and as an Undergraduate
+                        Researcher in Computational Modeling for two years under Prof. Delfim
+                        Soares Jr., also contributing to a confidential Petrobras-sponsored R&amp;D
+                        project for two years.
+                    </p>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+{% endblock %}

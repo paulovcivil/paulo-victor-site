@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Projects | Paulo Victor{% endblock %}
+
+{% block content %}
+<main>
+    <section class="projects">
+        <h2>Projects</h2>
+        <p>
+            A selection of computational modeling work exploring structural dynamics and
+            numerical simulation &mdash; the same kind of analysis I apply to civil engineering
+            problems.
+        </p>
+
+        <article class="project-entry">
+            <video
+                class="project-media"
+                src="{{ url_for('static', filename='img/pendulum_rotating_plane.mp4') }}"
+                autoplay
+                loop
+                muted
+                playsinline
+                aria-label="Animated simulation of a spherical pendulum, showing its swing plane rotating over time"
+            ></video>
+            <div>
+                <h3>Spherical Pendulum &mdash; Swing Plane Precession</h3>
+                <p>
+                    A numerical simulation of a spherical pendulum, tracking its polar angle
+                    (theta) and azimuthal angle (phi) as the bob swings freely in three
+                    dimensions. Unlike a simple pendulum confined to a single plane, this
+                    system's swing plane gradually rotates (precesses) over time &mdash; a
+                    classic example of nonlinear dynamics.
+                </p>
+                <p>
+                    This kind of simulation is a small-scale version of the same computational
+                    approach behind structural dynamics analysis: describing motion with
+                    differential equations, solving them numerically, and visualizing the
+                    result to build physical intuition before applying the same ideas to
+                    larger structural systems.
+                </p>
+            </div>
+        </article>
+
+        <h2>Articles</h2>
+        <p>
+            Academic papers I've authored or co-authored, available to download in full.
+        </p>
+
+        <div class="publications">
+            <article class="publication">
+                <h3>Linear Dynamic Stability of a Three-Story Shear Building Under Thermally Induced Axial Compression</h3>
+                <p class="pub-meta">Paulo Victor Sales, Arthur Rocha Lemos, Wesley de Lima Santos &middot; CILAMCE 2026</p>
+                <p>
+                    Investigates how restrained thermal expansion &mdash; and the resulting axial
+                    compression &mdash; destabilizes a reduced three-story shear-building model.
+                    Stability is evaluated through the positive definiteness of an effective
+                    lateral stiffness matrix, identifying the critical temperature rise at which
+                    the structure's first natural frequency vanishes.
+                </p>
+                <a
+                    class="btn-download"
+                    href="{{ url_for('static', filename='pdfs/shear-building-thermal-stability.pdf') }}"
+                    download
+                >Download PDF (3.2 MB)</a>
+            </article>
+
+            <article class="publication">
+                <h3>Parametric Instability of a Vertical Riser under Harmonic Top Motion: Floquet Analysis and Added-Mass Sensitivity</h3>
+                <p class="pub-meta">Paulo Victor Sales de Souza &middot; PEF 6000, Special Topics in Structural Dynamics</p>
+                <p>
+                    A reduced-order stability analysis of a submerged flexible cylinder (marine
+                    riser) subjected to harmonic top motion, using a Mathieu&ndash;Floquet modal
+                    formulation. Reproduces the dominant 2:1 parametric resonance observed
+                    experimentally and maps how uncertainty in hydrodynamic added mass affects
+                    the predicted stability boundaries.
+                </p>
+                <a
+                    class="btn-download"
+                    href="{{ url_for('static', filename='pdfs/vertical-riser-parametric-instability.pdf') }}"
+                    download
+                >Download PDF (850 KB)</a>
+            </article>
+
+            <article class="publication">
+                <h3>Analytical, One-Dimensional, and Axisymmetric Finite Element Modeling of Steel-Fiber Pullout</h3>
+                <p class="pub-meta">Paulo Victor Sales de Souza, Eduardo Carneiro Daniel &middot; Escola Polit&eacute;cnica, USP</p>
+                <p>
+                    Compares three models of increasing complexity &mdash; a closed-form
+                    shear-lag benchmark, a custom one-dimensional finite element formulation,
+                    and a two-dimensional axisymmetric Abaqus model &mdash; for the pullout of a
+                    steel fiber from a cementitious matrix, with a focus on code verification
+                    and mesh convergence.
+                </p>
+                <a
+                    class="btn-download"
+                    href="{{ url_for('static', filename='pdfs/steel-fiber-pullout-modeling.pdf') }}"
+                    download
+                >Download PDF (690 KB)</a>
+            </article>
+        </div>
+    </section>
+</main>
+{% endblock %}
