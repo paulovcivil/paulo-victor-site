@@ -800,11 +800,25 @@ Detalhando o que ainda falta fazer, em ordem, com o porquê de cada etapa.
 - Nada mudou no modo debug: já estava controlado por `FLASK_DEBUG` desde a seção 15, com `False` como padrão caso a variável não exista — exatamente o que queremos em produção.
 - Confirmado que o site continua funcionando normalmente em desenvolvimento (`python app.py`) depois dessas mudanças — as 4 rotas respondendo 200.
 
-### 28.2. Versionar o projeto com Git
+### 28.2. Versionar o projeto com Git ✅
 
-- [ ] **`git init`** — o projeto ainda não é um repositório Git (só temos o `.gitignore` pronto desde a seção 2.2, esperando por isso).
-- [ ] **Primeiro commit** — o `.gitignore` já existente garante que `venv/`, `.env`, `contacts.csv` e `__pycache__/` não sejam versionados.
-- [ ] **Criar um repositório no GitHub** (na sua conta) e enviar o código (`git push`). O Render se conecta diretamente ao GitHub e reimplanta automaticamente a cada `push` na branch principal — é essa a "modernidade" do fluxo comparado ao PythonAnywhere.
+- [x] **`git init`** — o projeto ainda não era um repositório Git (só tínhamos o `.gitignore` pronto desde a seção 2.2, esperando por isso).
+- [x] **Primeiro commit** — o `.gitignore` já existente garantiu que `venv/`, `.env`, `contacts.csv` e `__pycache__/` não fossem versionados.
+- [x] **Criar um repositório no GitHub** (na sua conta) e enviar o código (`git push`). O Render se conecta diretamente ao GitHub e reimplanta automaticamente a cada `push` na branch principal — é essa a "modernidade" do fluxo comparado ao PythonAnywhere.
+
+**O que foi feito:**
+
+- **Git instalado** (não vinha na máquina) e **GitHub CLI (`gh`)** também, para automatizar a criação do repositório sem precisar usar o site manualmente.
+- Configurado `git config --global user.name` / `user.email` (nome e e-mail que aparecem como autor dos commits).
+- `git init` + revisão do `git status` **antes** de adicionar qualquer arquivo — conferimos que `venv/`, `.env` e `contacts.csv` realmente não apareciam como "untracked" (prova de que o `.gitignore` estava funcionando). Encontramos também uma pasta `.claude/` (arquivo interno da ferramenta de IA usada no desenvolvimento, não faz parte do projeto) e adicionamos ela ao `.gitignore` antes de commitar.
+- Primeiro commit: `git commit -m "Initial commit: personal Flask site (Home, About, Projects, Contact)"` — 21 arquivos.
+- **Autenticação com o GitHub:** a forma mais comum (login pelo navegador, via `gh auth login --web`) não funcionou neste ambiente porque o processo tenta abrir um navegador gráfico que não existe aqui. A alternativa foi um **Personal Access Token (PAT)** — uma senha alternativa e configurável, gerada manualmente em github.com, usada só para autenticar ferramentas/scripts (em vez da senha da conta).
+- **Repositório criado e código enviado** com um único comando:
+  ```
+  gh repo create paulo-victor-site --public --source=. --remote=origin --push
+  ```
+  Esse comando do GitHub CLI faz três coisas de uma vez: cria o repositório `paulo-victor-site` na conta do GitHub, configura o repositório local para apontar pra ele (`remote origin`), e já envia o commit (`push`).
+- Repositório público: **https://github.com/paulovcivil/paulo-victor-site**
 
 ### 28.3. Configurar o serviço no Render
 
@@ -861,3 +875,8 @@ Detalhando o que ainda falta fazer, em ordem, com o porquê de cada etapa.
 | **Gunicorn** | Servidor WSGI de produção para aplicações Python — usado no lugar do servidor de desenvolvimento embutido do Flask quando o site vai para o ar de verdade. Só roda em sistemas Unix/Linux. |
 | **Procfile** | Arquivo de convenção (usado por Render, Heroku etc.) que declara o comando para iniciar a aplicação em produção. |
 | **Disco efêmero** | Sistema de arquivos que é apagado a cada reinício/redeploy do servidor — comum em planos gratuitos de hospedagem. Qualquer arquivo escrito durante a execução (como um CSV) some depois. |
+| **Repositório Git** | Pasta do projeto sob controle de versão do Git, com histórico de todas as mudanças (`commits`). Criado com `git init`. |
+| **Commit** | Um "ponto de salvamento" no histórico do Git, com uma mensagem descrevendo o que mudou. |
+| **Remote (Git)** | Um apelido para o endereço de um repositório em outro lugar (ex: `origin` apontando pro GitHub), usado por comandos como `git push`/`git pull`. |
+| **`gh` (GitHub CLI)** | Ferramenta de linha de comando oficial do GitHub, que permite criar repositórios, autenticar e interagir com o GitHub sem usar o navegador. |
+| **Personal Access Token (PAT)** | Uma "senha alternativa" do GitHub, gerada manualmente e com permissões configuráveis (escopos), usada para autenticar ferramentas e scripts em vez da senha da conta. |
