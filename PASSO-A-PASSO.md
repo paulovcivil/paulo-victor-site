@@ -921,6 +921,30 @@ No `base.html`:
 - **SVG como favicon** é suportado por todos os navegadores modernos (Chrome, Firefox, Edge, Safari recente) — não precisamos gerar várias versões em `.png`/`.ico` de tamanhos diferentes, como era necessário antigamente.
 - Por estar no `base.html`, o favicon já aparece nas 4 páginas automaticamente.
 
+## 32. SEO básico (aparecer no Google)
+
+**Contexto:** o domínio `structsim.com` só ficou totalmente ativo há pouco mais de um dia (seção 30), e uma busca `site:structsim.com` no Google não retornava nenhuma página — ou seja, o site ainda não tinha sido indexado. Isso é esperado: o Google não escaneia a internet em tempo real, ele descobre páginas por meio de links externos ou de um pedido manual de indexação, e isso leva tempo. Implementamos os elementos técnicos que preparam o terreno para essa indexação.
+
+**O que foi adicionado:**
+
+- **`static/robots.txt`** — arquivo que diz aos robôs de busca o que podem rastrear (aqui, tudo) e onde está o mapa do site. Precisa ficar na **raiz** do domínio (`structsim.com/robots.txt`, não `/static/robots.txt`), então criamos uma rota dedicada em `app.py`:
+  ```python
+  @app.route("/robots.txt")
+  def robots_txt():
+      return send_from_directory(app.static_folder, "robots.txt")
+  ```
+- **`static/sitemap.xml`** — lista as 4 páginas do site (`/`, `/about`, `/projects`, `/contact`) num formato padrão que o Google entende, facilitando descobrir todas de uma vez. Mesma lógica de rota dedicada em `app.py`, servindo em `structsim.com/sitemap.xml`.
+- **`meta description`** por página, em `base.html` (com um texto padrão) e sobrescrita em cada template via `{% block description %}...{% endblock %}` — o mesmo padrão já usado pelo `{% block title %}`. É o resumo que aparece embaixo do título no resultado de busca do Google.
+- **Link canônico** (`<link rel="canonical">`) e **tags Open Graph** (`og:title`, `og:description`, `og:url`) em `base.html`, usando `request.path` para montar a URL completa de cada página automaticamente. As tags Open Graph controlam como o link aparece quando compartilhado (WhatsApp, LinkedIn, etc.).
+- **Dados estruturados (`schema.org`, formato JSON-LD)** na página About — um bloco `<script type="application/ld+json">` descrevendo explicitamente "esta página é sobre uma Pessoa chamada Paulo Victor, com tal formação, tal LinkedIn". Isso ajuda o Google a associar buscas pelo seu nome a essa página.
+- Novo `{% block extra_head %}{% endblock %}` em `base.html`, um "gancho" vazio por padrão que qualquer página pode usar para inserir algo específico no `<head>` (hoje só a About usa, para o JSON-LD) sem precisar editar o `base.html` de novo no futuro.
+
+**O que isso NÃO faz:** nenhum desses itens garante aparecer no Google rapidamente — eles só removem barreiras técnicas para quando o Google visitar o site. O que de fato acelera a indexação:
+
+- [ ] **Google Search Console** (console.google.com, gratuito) — verificar a propriedade do domínio e pedir indexação manual das URLs. É o passo com mais impacto e depende da conta Google do usuário.
+- [ ] **Backlinks** — atualizar LinkedIn e outros perfis para linkar para `structsim.com`. Um link de um site com autoridade (como o LinkedIn) é um dos sinais mais fortes para o Google confiar num domínio novo.
+- Tempo — mesmo fazendo tudo certo, é normal levar dias a semanas para aparecer, principalmente em buscas pelo nome próprio (concorrendo com outros resultados já indexados há anos).
+
 ## Glossário rápido
 
 | Termo | O que é |
@@ -969,3 +993,11 @@ No `base.html`:
 | **SSL/TLS, certificado** | Tecnologia que permite conexões HTTPS (criptografadas). Serviços como o Render emitem certificados automaticamente (via Let's Encrypt) depois que o domínio é verificado — é uma etapa separada da configuração de DNS, que pode levar um tempo a mais. |
 | **Propagação de DNS** | O tempo que leva para uma mudança de DNS ser reconhecida por todos os servidores da internet — pode ser quase instantâneo ou levar até 24h. |
 | **Favicon** | O ícone pequeno associado a um site, exibido na aba do navegador, nos favoritos, etc. |
+| **SEO (Search Engine Optimization)** | Conjunto de práticas que ajudam um site a ser encontrado e bem ranqueado em mecanismos de busca como o Google. |
+| **`robots.txt`** | Arquivo na raiz de um domínio que diz aos robôs de busca o que eles podem ou não rastrear, e onde encontrar o `sitemap.xml`. |
+| **`sitemap.xml`** | Arquivo XML que lista as páginas de um site, num formato padrão que ajuda mecanismos de busca a descobrir todo o conteúdo de uma vez. |
+| **`meta description`** | Tag HTML (`<meta name="description">`) com um resumo da página, usada pelo Google como o texto exibido embaixo do título no resultado de busca. |
+| **URL canônica (`rel="canonical"`)** | Tag que declara qual é a URL "oficial" de uma página, evitando que buscadores tratem variações da mesma URL como conteúdo duplicado. |
+| **Open Graph (`og:*`)** | Conjunto de tags de metadados que controla como um link aparece quando compartilhado em redes sociais e apps de mensagem (título, descrição, imagem). |
+| **Dados estruturados / JSON-LD / `schema.org`** | Um bloco de dados (formato JSON) embutido na página que descreve seu conteúdo de forma explícita para os buscadores (ex: "esta página é sobre uma Pessoa chamada X") — usa o vocabulário padrão do `schema.org`. |
+| **Google Search Console** | Painel gratuito do Google (console.google.com) para verificar a propriedade de um site, enviar seu `sitemap.xml` e pedir indexação manual de páginas — o jeito mais rápido de acelerar o aparecimento nas buscas. |

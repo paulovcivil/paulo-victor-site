@@ -2,6 +2,32 @@
 
 {% block title %}About | {{ name }}{% endblock %}
 
+{% block description %}{{ name }} — Civil Engineer and MSc candidate at the University of São Paulo, working on computational structural engineering and AI-driven structural modeling.{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "{{ name }}",
+  "url": "https://structsim.com{{ url_for('about') }}",
+  "image": "https://structsim.com{{ url_for('static', filename='img/eu.png') }}",
+  "jobTitle": "Civil Engineer",
+  "affiliation": {
+    "@type": "CollegeOrUniversity",
+    "name": "University of São Paulo"
+  },
+  "alumniOf": [
+    { "@type": "CollegeOrUniversity", "name": "Federal University of Juiz de Fora" },
+    { "@type": "CollegeOrUniversity", "name": "University of São Paulo" }
+  ],
+  "sameAs": [
+    "https://www.linkedin.com/in/paulovsales/"
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <main>
     <section class="about">

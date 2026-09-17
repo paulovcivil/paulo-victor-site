@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, send_from_directory, session, url_for
 
 load_dotenv()
 
@@ -15,6 +15,16 @@ DEBUG_MODE = os.getenv("FLASK_DEBUG", "False") == "True"
 @app.context_processor
 def inject_current_year():
     return {"current_year": datetime.now().year}
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    return send_from_directory(app.static_folder, "robots.txt")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    return send_from_directory(app.static_folder, "sitemap.xml", mimetype="application/xml")
 
 
 @app.route("/")
