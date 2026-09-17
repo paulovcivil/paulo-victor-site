@@ -939,6 +939,8 @@ No `base.html`:
 - **Dados estruturados (`schema.org`, formato JSON-LD)** na página About — um bloco `<script type="application/ld+json">` descrevendo explicitamente "esta página é sobre uma Pessoa chamada Paulo Victor, com tal formação, tal LinkedIn". Isso ajuda o Google a associar buscas pelo seu nome a essa página.
 - Novo `{% block extra_head %}{% endblock %}` em `base.html`, um "gancho" vazio por padrão que qualquer página pode usar para inserir algo específico no `<head>` (hoje só a About usa, para o JSON-LD) sem precisar editar o `base.html` de novo no futuro.
 
+**Correção:** as URLs canônicas, o Open Graph, o `robots.txt` e o `sitemap.xml` foram escritos inicialmente com `https://structsim.com` (sem `www`). Testando com `curl`, confirmamos que o domínio raiz na verdade **redireciona (301)** para `https://www.structsim.com` (seção 30) — é este último que responde `200` de fato. Todas as URLs foram corrigidas para usar `www.structsim.com`, que é a URL que deve ser cadastrada no Google Search Console.
+
 **O que isso NÃO faz:** nenhum desses itens garante aparecer no Google rapidamente — eles só removem barreiras técnicas para quando o Google visitar o site. O que de fato acelera a indexação:
 
 - [ ] **Google Search Console** (console.google.com, gratuito) — verificar a propriedade do domínio e pedir indexação manual das URLs. É o passo com mais impacto e depende da conta Google do usuário.
