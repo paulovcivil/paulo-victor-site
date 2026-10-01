@@ -953,56 +953,71 @@ No `base.html`:
 
 ## 33. Notificação por e-mail no formulário de contato
 
-**Contexto:** o formulário de contato captura nome/telefone/email e mostra uma confirmação na tela (seção 19-20, padrão Post/Redirect/Get), mas não existia nenhum jeito de o usuário *saber* que alguém preencheu o formulário sem checar os dados manualmente — e, como o disco do Render é efêmero (seção 28), nada fica persistido entre deploys. Implementamos a opção mais simples das cogitadas na seção 28.4: enviar um e-mail a cada envio.
+**Contexto:** o formulário de contato captura nome/telefone/email e mostra uma confirmação na tela (seção 19-20, padrão Post/Redirect/Get), mas não existia nenhum jeito de o usuário *saber* que alguém preencheu o formulário sem checar os dados manualmente — e, como o disco do Render é efêmero (seção 28), nada fica persistido entre deploys. Implementamos a opção mais simples das cogitadas na seção 28.4: enviar um e-mail a cada envio. Essa seção documenta o caminho até a solução final, porque o processo passou por duas tentativas antes de funcionar em produção — vale manter registrado caso mexamos nisso de novo.
 
-**Como funciona:** usamos a biblioteca padrão do Python (`smtplib` + `email.message.EmailMessage`, nenhuma dependência nova) para enviar um e-mail pelo **SMTP do Gmail** sempre que o formulário é submetido:
+### Tentativa 1: SMTP direto do Gmail (não funcionou em produção)
+
+Primeira versão: biblioteca padrão do Python (`smtplib` + `email.message.EmailMessage`), autenticando no `smtp.gmail.com` com uma **Senha de App** do Google (não a senha normal da conta — gerada em `myaccount.google.com/apppasswords`, exige verificação em duas etapas ativada).
+
+Funcionou perfeitamente em desenvolvimento local, mas em produção (Render) o formulário ficava travado e terminava em **"Internal Server Error"**. Investigando pelos logs do Render, o erro real era:
+
+```
+OSError: [Errno 101] Network is unreachable
+```
+
+**Causa:** o plano gratuito do Render **bloqueia conexões de saída via SMTP** (prática comum em hospedagens grátis, para evitar abuso/spam). Isso não é específico do Gmail — qualquer servidor SMTP bateria no mesmo bloqueio. No caminho, também corrigimos um bug relacionado: o código só capturava `smtplib.SMTPException` (erros do *protocolo*), não `OSError`/`TimeoutError` (erros de *conexão*) — por isso a falha de rede derrubava a requisição inteira com 500 em vez de ser tratada. Esse bug em si foi corrigido (`except (smtplib.SMTPException, OSError)` + `timeout=10`), mas o problema de fundo (bloqueio de SMTP pelo Render) exigiu trocar de abordagem.
+
+### Tentativa 2: API HTTP do Resend (solução final)
+
+Como o Render libera conexões de saída via **HTTPS normal** (porta 443) — só bloqueia SMTP bruto — a solução é usar um serviço de e-mail transacional com **API HTTP** em vez de SMTP. Escolhemos o [Resend](https://resend.com): no plano gratuito, sem verificar um domínio próprio, dá para enviar usando o remetente de teste deles (`onboarding@resend.dev`) para o **próprio e-mail da conta cadastrada** — exatamente o nosso caso (notificação para o próprio Paulo). Limite: 100 e-mails/dia, 3.000/mês.
 
 ```python
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-MAIL_TO = os.getenv("MAIL_TO", MAIL_USERNAME)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+MAIL_TO = os.getenv("MAIL_TO")
 
 
 def send_contact_notification(submitted):
-    if not MAIL_USERNAME or not MAIL_PASSWORD:
-        app.logger.warning("MAIL_USERNAME/MAIL_PASSWORD not set — skipping contact notification email.")
+    if not RESEND_API_KEY or not MAIL_TO:
+        app.logger.warning("RESEND_API_KEY/MAIL_TO not set — skipping contact notification email.")
         return
 
-    message = EmailMessage()
-    message["Subject"] = f"New contact form submission from {submitted['name']}"
-    message["From"] = MAIL_USERNAME
-    message["To"] = MAIL_TO
-    message["Reply-To"] = submitted["email"]
-    message.set_content(...)
+    payload = {
+        "from": "Structural Simulation <onboarding@resend.dev>",
+        "to": [MAIL_TO],
+        "reply_to": submitted["email"],
+        "subject": f"New contact form submission from {submitted['name']}",
+        "text": "...",
+    }
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+            "User-Agent": "structsim.com-contact-form",
+        },
+        method="POST",
+    )
 
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-            smtp.starttls()
-            smtp.login(MAIL_USERNAME, MAIL_PASSWORD)
-            smtp.send_message(message)
-    except smtplib.SMTPException:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            response.read()
+    except (urllib.error.URLError, OSError):
         app.logger.exception("Failed to send contact notification email.")
 ```
 
-- **Autenticação por Senha de App**, não a senha normal da conta Google — gerada em `myaccount.google.com/apppasswords`, exige verificação em duas etapas ativada. Fica só no `.env` (local) e nas variáveis de ambiente do Render (produção), nunca no código.
-- **`Reply-To` com o e-mail de quem preencheu o formulário** — assim dá pra responder direto pelo próprio cliente de e-mail, sem precisar copiar o endereço manualmente.
-- **Falha de envio não quebra a página**: se o SMTP falhar (credencial errada, rede fora, etc.), o `try/except` captura `smtplib.SMTPException`, registra no log do servidor e o visitante continua vendo a confirmação normalmente — o e-mail é um "extra", não algo que o fluxo do formulário depende para funcionar.
-- Se as variáveis de ambiente não estiverem configuradas (ex: ambiente de desenvolvimento sem `.env` preenchido), a função simplesmente não tenta enviar e registra um aviso — não derruba a aplicação.
+- Usa só `urllib.request` da biblioteca padrão — nenhuma dependência nova no `requirements.txt`.
+- **`Reply-To` com o e-mail de quem preencheu o formulário** — permanece do design original, dá pra responder direto pelo cliente de e-mail.
+- Mesmo padrão de robustez da tentativa 1: falha (de rede ou de API) é capturada e logada, nunca quebra a página; `timeout=10` evita requisição pendurada.
 
-**Depuração durante o teste:** dois problemas não relacionados ao código apareceram ao testar localmente:
-1. As variáveis `MAIL_USERNAME`/`MAIL_PASSWORD` foram digitadas no `.env` mas o arquivo não tinha sido salvo no editor — resolvido salvando (Ctrl+S). Lição: sempre confirmar que o arquivo foi salvo em disco antes de testar, não só editado na tela.
-2. Processos antigos do servidor de desenvolvimento (de testes anteriores) ficaram "presos" ouvindo a porta 5000, fazendo as requisições de teste caírem em processos aleatórios e desatualizados em vez do processo atual. Resolvido matando todos os processos Python antigos e testando numa porta nova e limpa.
+**Pegadinha encontrada: bloqueio do Cloudflare (erro 403 "error code: 1010").** Testando local com a API Key real, a chamada retornava `403 Forbidden`, mas o corpo da resposta (`error code: 1010`) não era um erro do Resend — é um erro do **Cloudflare**, a proteção na frente da API deles, bloqueando a requisição pela "assinatura" do cliente. O `urllib.request` do Python, por padrão, manda o cabeçalho `User-Agent: Python-urllib/3.x`, que bate em listas de bloqueio de bot. Bastou adicionar qualquer `User-Agent` identificável (`"structsim.com-contact-form"`, sem precisar fingir ser navegador) para passar — não precisa simular uma requisição de browser, só não deixar o padrão genérico do Python.
 
-**Bug encontrado em produção (Render):** depois de configurar as variáveis de ambiente no Render e testar o formulário em `www.structsim.com`, o envio ficava travado por um bom tempo e terminava em **"Internal Server Error"**. Causa: `send_contact_notification` só capturava `smtplib.SMTPException` (erros do *protocolo* SMTP, tipo senha errada), mas não erros de **conexão de rede** (timeout, conexão recusada) — se o Render demorar ou falhar pra conectar no `smtp.gmail.com`, o Python lança um `OSError`/`TimeoutError`, que não é subclasse de `SMTPException` e não era capturado, derrubando a requisição inteira com erro 500. Corrigido:
+**Variáveis de ambiente:** `MAIL_USERNAME`/`MAIL_PASSWORD` (da tentativa 1) foram substituídas por `RESEND_API_KEY`/`MAIL_TO` — tanto no `.env` local quanto no painel do Render.
 
-```python
-with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
-    ...
-except (smtplib.SMTPException, OSError):
-    app.logger.exception(...)
-```
-
-Agora qualquer falha de rede ao enviar o e-mail é registrada no log mas não derruba a página — o visitante sempre vê a confirmação normalmente, e o `timeout=10` garante que, se a conexão travar, falha rápido (10s) em vez de deixar a requisição pendurada indefinidamente.
+**Depuração durante os testes:** dois problemas de ambiente, não do código, apareceram no caminho:
+1. As variáveis foram digitadas no `.env` mas o arquivo não tinha sido salvo no editor — resolvido salvando (Ctrl+S). Lição: sempre confirmar que o arquivo foi salvo em disco antes de testar, não só editado na tela.
+2. Processos antigos do servidor de desenvolvimento (de testes anteriores) ficaram "presos" ouvindo a porta 5000, fazendo as requisições de teste caírem em processos aleatórios e desatualizados em vez do processo atual. Resolvido matando todos os processos Python antigos e testando numa porta nova e limpa a cada rodada.
 
 ## Glossário rápido
 
@@ -1063,3 +1078,6 @@ Agora qualquer falha de rede ao enviar o e-mail é registrada no log mas não de
 | **SMTP** | Protocolo padrão usado para enviar e-mails. Um servidor SMTP (ex: `smtp.gmail.com`) recebe a mensagem de uma aplicação e a encaminha até a caixa de entrada do destinatário. |
 | **Senha de App (Google)** | Senha de 16 caracteres gerada separadamente da senha normal da conta Google, usada para autenticar aplicações (como o nosso site) via SMTP. Exige verificação em duas etapas ativada na conta. |
 | **`Reply-To`** | Cabeçalho de e-mail que define para qual endereço uma resposta deve ir, caso seja diferente do remetente original (`From`). Usado aqui para que responder a notificação do formulário vá direto para quem o preencheu. |
+| **API de e-mail transacional (ex: Resend)** | Serviço que envia e-mails automáticos (notificações, confirmações) através de uma chamada HTTP comum, em vez de SMTP. Útil em hospedagens que bloqueiam conexões SMTP de saída, como o plano gratuito do Render. |
+| **Cloudflare** | Serviço de proteção/infraestrutura usado na frente de muitos sites e APIs (incluindo a do Resend) para bloquear tráfego malicioso ou automatizado antes que ele chegue ao servidor de verdade. |
+| **`User-Agent`** | Cabeçalho HTTP que identifica qual programa está fazendo a requisição (ex: um navegador, ou uma biblioteca como o `urllib` do Python). Serviços de proteção como o Cloudflare às vezes bloqueiam requisições com o `User-Agent` padrão de bibliotecas de automação. |

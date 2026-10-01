@@ -1,7 +1,8 @@
+import json
 import os
-import smtplib
+import urllib.error
+import urllib.request
 from datetime import datetime
-from email.message import EmailMessage
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, send_from_directory, session, url_for
@@ -13,34 +14,43 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 DEBUG_MODE = os.getenv("FLASK_DEBUG", "False") == "True"
 
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-MAIL_TO = os.getenv("MAIL_TO", MAIL_USERNAME)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+MAIL_TO = os.getenv("MAIL_TO")
 
 
 def send_contact_notification(submitted):
-    if not MAIL_USERNAME or not MAIL_PASSWORD:
-        app.logger.warning("MAIL_USERNAME/MAIL_PASSWORD not set — skipping contact notification email.")
+    if not RESEND_API_KEY or not MAIL_TO:
+        app.logger.warning("RESEND_API_KEY/MAIL_TO not set — skipping contact notification email.")
         return
 
-    message = EmailMessage()
-    message["Subject"] = f"New contact form submission from {submitted['name']}"
-    message["From"] = MAIL_USERNAME
-    message["To"] = MAIL_TO
-    message["Reply-To"] = submitted["email"]
-    message.set_content(
-        "New message from the structsim.com contact form:\n\n"
-        f"Name: {submitted['name']}\n"
-        f"Phone: {submitted['phone']}\n"
-        f"Email: {submitted['email']}\n"
+    payload = {
+        "from": "Structural Simulation <onboarding@resend.dev>",
+        "to": [MAIL_TO],
+        "reply_to": submitted["email"],
+        "subject": f"New contact form submission from {submitted['name']}",
+        "text": (
+            "New message from the structsim.com contact form:\n\n"
+            f"Name: {submitted['name']}\n"
+            f"Phone: {submitted['phone']}\n"
+            f"Email: {submitted['email']}\n"
+        ),
+    }
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+            "User-Agent": "structsim.com-contact-form",
+        },
+        method="POST",
     )
 
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
-            smtp.starttls()
-            smtp.login(MAIL_USERNAME, MAIL_PASSWORD)
-            smtp.send_message(message)
-    except (smtplib.SMTPException, OSError):
+        with urllib.request.urlopen(req, timeout=10) as response:
+            response.read()
+    except (urllib.error.URLError, OSError):
         app.logger.exception("Failed to send contact notification email.")
 
 
