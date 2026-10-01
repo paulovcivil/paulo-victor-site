@@ -36,11 +36,11 @@ def send_contact_notification(submitted):
     )
 
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
             smtp.starttls()
             smtp.login(MAIL_USERNAME, MAIL_PASSWORD)
             smtp.send_message(message)
-    except smtplib.SMTPException:
+    except (smtplib.SMTPException, OSError):
         app.logger.exception("Failed to send contact notification email.")
 
 
