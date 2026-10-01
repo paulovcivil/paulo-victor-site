@@ -2,7 +2,7 @@
 
 Este documento explica o que foi feito até agora no projeto e por quê, acompanhando os tópicos do curso (HTML, CSS, Flask, páginas estáticas x dinâmicas).
 
-**🌐 Site no ar:** https://paulovs.onrender.com &middot; domínio próprio **structsim.com** conectado (certificado HTTPS do `www` ainda sendo emitido, seção 30) &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
+**🌐 Site no ar:** **https://www.structsim.com** (domínio próprio, HTTPS ativo nos dois hosts — seção 30) &middot; também acessível em https://paulovs.onrender.com &middot; **Repositório:** https://github.com/paulovcivil/paulo-victor-site
 
 > **Nota:** este arquivo é um **log cronológico** — cada seção reflete o estado do projeto *no momento em que foi escrita*. A partir da seção 13, todo o código (rotas, nomes de arquivo, variáveis) foi traduzido para inglês. Por isso, trechos de código nas seções anteriores a ela ainda podem mostrar nomes antigos em português (`/sobre`, `sobre.html`, `dados`, etc.) — são registro histórico das decisões tomadas naquele passo, não o estado atual do código. Para ver o estado atual, veja a seção 1 (estrutura de pastas, sempre mantida atualizada) e a seção 13.
 
@@ -17,15 +17,18 @@ Samsung Ocean/
 ├── .env.example             # modelo do .env, sem segredos reais — esse vai para o git
 ├── Procfile                 # diz ao Render (ou Heroku) como iniciar o site em produção
 ├── venv/                   # ambiente virtual Python isolado deste projeto
-├── contacts.csv            # arquivo de teste da fase em que o formulário gravava em disco (não é mais escrito)
+├── contacts.csv            # arquivo órfão da fase em que o formulário gravava em disco (seção 7/27) — não é mais escrito nem lido; ignorado pelo git
 ├── templates/              # HTML fica aqui (Flask procura nesta pasta por padrão)
-│   ├── base.html           # esqueleto comum (cabeçalho + menu) herdado pelas outras páginas
+│   ├── base.html           # esqueleto comum (cabeçalho + menu + SEO/analytics) herdado pelas outras páginas
 │   ├── index.html
 │   ├── about.html
 │   ├── projects.html
 │   └── contact.html
 └── static/                 # CSS, imagens e JS ficam aqui
     ├── style.css
+    ├── favicon.svg          # ícone da aba do navegador (seção 31)
+    ├── robots.txt           # regras para robôs de busca, servido na raiz do domínio (seção 32)
+    ├── sitemap.xml          # mapa das 4 páginas, servido na raiz do domínio (seção 32)
     ├── pdfs/
     │   ├── shear-building-thermal-stability.pdf
     │   ├── vertical-riser-parametric-instability.pdf
@@ -36,8 +39,7 @@ Samsung Ocean/
         ├── eu_contato.png  # foto usada na página Contact
         ├── ufjf.png        # logo da UFJF (seção Education)
         ├── usp.png         # logo da USP (seção Education)
-        ├── pendulum_rotating_plane.gif  # original enviado pelo usuário (não usado na página)
-        └── pendulum_rotating_plane.mp4  # versão comprimida, usada na página Projects
+        └── pendulum_rotating_plane.mp4  # vídeo usado na página Projects
 ```
 
 O Flask tem essa convenção fixa: arquivos HTML dentro de `templates/`, e arquivos estáticos (CSS/JS/imagens) dentro de `static/`. Não é obrigatório, mas é o padrão que o framework espera sem precisar configurar nada extra.
@@ -948,7 +950,9 @@ No `base.html`:
   Propriedade de **domínio** (`structsim.com`, cobre `www`/`http`/`https` de uma vez) verificada via registro **TXT** no DNS do Namecheap (`google-site-verification=...`, confirmado propagado por `nslookup`). Sitemap submetido e as 4 URLs enviadas para indexação manual pela ferramenta de Inspeção de URL. Em `www.structsim.com/sitemap.xml` ainda havia uma inconsistência — as URLs tinham sido escritas sem `www`, mas o domínio raiz **redireciona (301)** para `www.structsim.com` (confirmado com `curl`) — corrigido em todas as tags (canonical, Open Graph, `robots.txt`, `sitemap.xml`) para usar `www.structsim.com`, que é a URL real servida.
 
   Até o momento desta seção, `site:www.structsim.com` ainda não retorna resultados — normal nesse estágio (ver "Tempo" abaixo).
-- [ ] **Backlinks** — atualizar LinkedIn e outros perfis para linkar para `structsim.com`. Um link de um site com autoridade (como o LinkedIn) é um dos sinais mais fortes para o Google confiar num domínio novo.
+- [x] **Backlinks** — atualizar LinkedIn e outros perfis para linkar para `structsim.com`. Um link de um site com autoridade (como o LinkedIn) é um dos sinais mais fortes para o Google confiar num domínio novo.
+
+  Feito em três lugares: **LinkedIn** (campo "Website" em Contact Info, mais um card na seção "Featured" apontando pro site), **perfil do GitHub** (`github.com/settings/profile` → campo Website) e o **próprio repositório** `paulo-victor-site` (engrenagem ao lado de "About" → campo Website). Os dois do GitHub foram confirmados via API pública (`api.github.com/users/paulovcivil` e `.../repos/paulovcivil/paulo-victor-site`, campos `blog` e `homepage` respectivamente) — o LinkedIn não dá pra confirmar por fora (bloqueia acesso automatizado), ficou a confirmação visual do próprio usuário.
 - Tempo — mesmo fazendo tudo certo, é normal levar dias a semanas para aparecer, principalmente em buscas pelo nome próprio (concorrendo com outros resultados já indexados há anos).
 
 ## 33. Notificação por e-mail no formulário de contato
