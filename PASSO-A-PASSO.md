@@ -1029,6 +1029,22 @@ Adicionado um campo de texto livre (`<textarea>`) ao formulário de contato, ent
 
 Testado localmente de ponta a ponta (formulário → confirmação na tela → e-mail recebido com a mensagem).
 
+## 35. Analytics (Cloudflare Web Analytics)
+
+**Contexto:** depois de todo o trabalho de SEO (seção 32) e backlinks (LinkedIn/GitHub), não havia nenhuma forma de saber se há visitantes no site, de onde vêm, ou se esse trabalho está surtindo efeito.
+
+**Por que Cloudflare Web Analytics, e não Google Analytics:** é gratuito sem camada paga acima, **não usa cookies** (então não exige banner de consentimento de cookies) e, principalmente, **não exige mudar os nameservers do domínio** — funciona em qualquer site, hospedado em qualquer lugar, só com um `<script>` na página. É um produto separado do "adicionar o domínio como zona" do Cloudflare (que faria o DNS inteiro passar a ser gerenciado por eles — não é o que queremos aqui).
+
+**Configuração:** conta gratuita no Cloudflare → **Analytics** → **Web Analytics** → "Add a site" → hostname `www.structsim.com` (o mesmo cuidado da seção 32: é o domínio que o site realmente serve). Isso gera um token único e um script, inserido no `base.html` antes do `</body>` (não bloqueia o carregamento da página, já que o Cloudflare recomenda essa posição):
+
+```html
+<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "..."}'></script>
+```
+
+Por estar no `base.html`, aparece nas 4 páginas automaticamente — confirmado testando localmente (`grep` no HTML de cada rota).
+
+**Nota de segurança:** diferente da `SECRET_KEY` ou da `RESEND_API_KEY`, esse token **não é um segredo** — ele é feito para ficar visível no código-fonte da página (é assim que o script funciona, rodando no navegador de quem visita o site), então não há problema em ele aparecer direto no código/HTML, sem precisar passar por variável de ambiente.
+
 ## Glossário rápido
 
 | Termo | O que é |
@@ -1091,3 +1107,5 @@ Testado localmente de ponta a ponta (formulário → confirmação na tela → e
 | **API de e-mail transacional (ex: Resend)** | Serviço que envia e-mails automáticos (notificações, confirmações) através de uma chamada HTTP comum, em vez de SMTP. Útil em hospedagens que bloqueiam conexões SMTP de saída, como o plano gratuito do Render. |
 | **Cloudflare** | Serviço de proteção/infraestrutura usado na frente de muitos sites e APIs (incluindo a do Resend) para bloquear tráfego malicioso ou automatizado antes que ele chegue ao servidor de verdade. |
 | **`User-Agent`** | Cabeçalho HTTP que identifica qual programa está fazendo a requisição (ex: um navegador, ou uma biblioteca como o `urllib` do Python). Serviços de proteção como o Cloudflare às vezes bloqueiam requisições com o `User-Agent` padrão de bibliotecas de automação. |
+| **Web analytics** | Ferramenta que mede visitas a um site (quantas, de onde, quais páginas) sem necessariamente rastrear o visitante individualmente entre sites, como o Google Analytics tradicionalmente faz. |
+| **Cookie** | Pequeno dado que um site guarda no navegador do visitante, geralmente usado para lembrar sessões ou rastrear comportamento entre visitas. Ferramentas de analytics "sem cookies" (como o Cloudflare Web Analytics) não guardam esse tipo de dado, o que evita a obrigação legal de mostrar um banner de consentimento de cookies. |
