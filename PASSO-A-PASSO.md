@@ -993,6 +993,17 @@ def send_contact_notification(submitted):
 1. As variáveis `MAIL_USERNAME`/`MAIL_PASSWORD` foram digitadas no `.env` mas o arquivo não tinha sido salvo no editor — resolvido salvando (Ctrl+S). Lição: sempre confirmar que o arquivo foi salvo em disco antes de testar, não só editado na tela.
 2. Processos antigos do servidor de desenvolvimento (de testes anteriores) ficaram "presos" ouvindo a porta 5000, fazendo as requisições de teste caírem em processos aleatórios e desatualizados em vez do processo atual. Resolvido matando todos os processos Python antigos e testando numa porta nova e limpa.
 
+**Bug encontrado em produção (Render):** depois de configurar as variáveis de ambiente no Render e testar o formulário em `www.structsim.com`, o envio ficava travado por um bom tempo e terminava em **"Internal Server Error"**. Causa: `send_contact_notification` só capturava `smtplib.SMTPException` (erros do *protocolo* SMTP, tipo senha errada), mas não erros de **conexão de rede** (timeout, conexão recusada) — se o Render demorar ou falhar pra conectar no `smtp.gmail.com`, o Python lança um `OSError`/`TimeoutError`, que não é subclasse de `SMTPException` e não era capturado, derrubando a requisição inteira com erro 500. Corrigido:
+
+```python
+with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+    ...
+except (smtplib.SMTPException, OSError):
+    app.logger.exception(...)
+```
+
+Agora qualquer falha de rede ao enviar o e-mail é registrada no log mas não derruba a página — o visitante sempre vê a confirmação normalmente, e o `timeout=10` garante que, se a conexão travar, falha rápido (10s) em vez de deixar a requisição pendurada indefinidamente.
+
 ## Glossário rápido
 
 | Termo | O que é |
