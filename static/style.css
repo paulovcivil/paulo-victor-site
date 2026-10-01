@@ -454,10 +454,18 @@ form label {
     margin-top: 0.75rem;
 }
 
-form input {
+form input,
+form textarea {
     padding: 0.5rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: inherit;
+}
+
+form textarea {
+    resize: vertical;
+    min-height: 6rem;
 }
 
 form button {

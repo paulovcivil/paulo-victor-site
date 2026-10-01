@@ -32,7 +32,8 @@ def send_contact_notification(submitted):
             "New message from the structsim.com contact form:\n\n"
             f"Name: {submitted['name']}\n"
             f"Phone: {submitted['phone']}\n"
-            f"Email: {submitted['email']}\n"
+            f"Email: {submitted['email']}\n\n"
+            f"Message:\n{submitted['message']}\n"
         ),
     }
 
@@ -91,6 +92,7 @@ def contact():
             "name": request.form["name"],
             "phone": request.form["phone"],
             "email": request.form["email"],
+            "message": request.form["message"],
         }
 
         send_contact_notification(submitted)

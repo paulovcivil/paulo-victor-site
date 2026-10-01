@@ -1019,6 +1019,16 @@ def send_contact_notification(submitted):
 1. As variáveis foram digitadas no `.env` mas o arquivo não tinha sido salvo no editor — resolvido salvando (Ctrl+S). Lição: sempre confirmar que o arquivo foi salvo em disco antes de testar, não só editado na tela.
 2. Processos antigos do servidor de desenvolvimento (de testes anteriores) ficaram "presos" ouvindo a porta 5000, fazendo as requisições de teste caírem em processos aleatórios e desatualizados em vez do processo atual. Resolvido matando todos os processos Python antigos e testando numa porta nova e limpa a cada rodada.
 
+## 34. Campo "Message" no formulário de contato
+
+Adicionado um campo de texto livre (`<textarea>`) ao formulário de contato, entre Email e o botão de envio — até então o formulário só coletava nome/telefone/email, sem espaço para a pessoa escrever o que queria. Mudança em três pontos:
+
+- **`templates/contact.html`**: novo `<textarea id="message" name="message" required>`, e exibido também na confirmação da tela (`{{ submitted.message }}`).
+- **`static/style.css`**: a regra que estiliza os `input` do formulário passou a cobrir `textarea` também (`form input, form textarea`), com `resize: vertical` e uma altura mínima.
+- **`app.py`**: `request.form["message"]` adicionado ao dicionário `submitted`, e incluído no corpo do e-mail de notificação (seção 33) enviado pelo Resend.
+
+Testado localmente de ponta a ponta (formulário → confirmação na tela → e-mail recebido com a mensagem).
+
 ## Glossário rápido
 
 | Termo | O que é |
