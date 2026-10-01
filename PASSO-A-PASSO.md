@@ -943,9 +943,55 @@ No `base.html`:
 
 **O que isso NÃO faz:** nenhum desses itens garante aparecer no Google rapidamente — eles só removem barreiras técnicas para quando o Google visitar o site. O que de fato acelera a indexação:
 
-- [ ] **Google Search Console** (console.google.com, gratuito) — verificar a propriedade do domínio e pedir indexação manual das URLs. É o passo com mais impacto e depende da conta Google do usuário.
+- [x] **Google Search Console** (console.google.com, gratuito) — verificar a propriedade do domínio e pedir indexação manual das URLs. É o passo com mais impacto e depende da conta Google do usuário.
+
+  Propriedade de **domínio** (`structsim.com`, cobre `www`/`http`/`https` de uma vez) verificada via registro **TXT** no DNS do Namecheap (`google-site-verification=...`, confirmado propagado por `nslookup`). Sitemap submetido e as 4 URLs enviadas para indexação manual pela ferramenta de Inspeção de URL. Em `www.structsim.com/sitemap.xml` ainda havia uma inconsistência — as URLs tinham sido escritas sem `www`, mas o domínio raiz **redireciona (301)** para `www.structsim.com` (confirmado com `curl`) — corrigido em todas as tags (canonical, Open Graph, `robots.txt`, `sitemap.xml`) para usar `www.structsim.com`, que é a URL real servida.
+
+  Até o momento desta seção, `site:www.structsim.com` ainda não retorna resultados — normal nesse estágio (ver "Tempo" abaixo).
 - [ ] **Backlinks** — atualizar LinkedIn e outros perfis para linkar para `structsim.com`. Um link de um site com autoridade (como o LinkedIn) é um dos sinais mais fortes para o Google confiar num domínio novo.
 - Tempo — mesmo fazendo tudo certo, é normal levar dias a semanas para aparecer, principalmente em buscas pelo nome próprio (concorrendo com outros resultados já indexados há anos).
+
+## 33. Notificação por e-mail no formulário de contato
+
+**Contexto:** o formulário de contato captura nome/telefone/email e mostra uma confirmação na tela (seção 19-20, padrão Post/Redirect/Get), mas não existia nenhum jeito de o usuário *saber* que alguém preencheu o formulário sem checar os dados manualmente — e, como o disco do Render é efêmero (seção 28), nada fica persistido entre deploys. Implementamos a opção mais simples das cogitadas na seção 28.4: enviar um e-mail a cada envio.
+
+**Como funciona:** usamos a biblioteca padrão do Python (`smtplib` + `email.message.EmailMessage`, nenhuma dependência nova) para enviar um e-mail pelo **SMTP do Gmail** sempre que o formulário é submetido:
+
+```python
+MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+MAIL_TO = os.getenv("MAIL_TO", MAIL_USERNAME)
+
+
+def send_contact_notification(submitted):
+    if not MAIL_USERNAME or not MAIL_PASSWORD:
+        app.logger.warning("MAIL_USERNAME/MAIL_PASSWORD not set — skipping contact notification email.")
+        return
+
+    message = EmailMessage()
+    message["Subject"] = f"New contact form submission from {submitted['name']}"
+    message["From"] = MAIL_USERNAME
+    message["To"] = MAIL_TO
+    message["Reply-To"] = submitted["email"]
+    message.set_content(...)
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+            smtp.starttls()
+            smtp.login(MAIL_USERNAME, MAIL_PASSWORD)
+            smtp.send_message(message)
+    except smtplib.SMTPException:
+        app.logger.exception("Failed to send contact notification email.")
+```
+
+- **Autenticação por Senha de App**, não a senha normal da conta Google — gerada em `myaccount.google.com/apppasswords`, exige verificação em duas etapas ativada. Fica só no `.env` (local) e nas variáveis de ambiente do Render (produção), nunca no código.
+- **`Reply-To` com o e-mail de quem preencheu o formulário** — assim dá pra responder direto pelo próprio cliente de e-mail, sem precisar copiar o endereço manualmente.
+- **Falha de envio não quebra a página**: se o SMTP falhar (credencial errada, rede fora, etc.), o `try/except` captura `smtplib.SMTPException`, registra no log do servidor e o visitante continua vendo a confirmação normalmente — o e-mail é um "extra", não algo que o fluxo do formulário depende para funcionar.
+- Se as variáveis de ambiente não estiverem configuradas (ex: ambiente de desenvolvimento sem `.env` preenchido), a função simplesmente não tenta enviar e registra um aviso — não derruba a aplicação.
+
+**Depuração durante o teste:** dois problemas não relacionados ao código apareceram ao testar localmente:
+1. As variáveis `MAIL_USERNAME`/`MAIL_PASSWORD` foram digitadas no `.env` mas o arquivo não tinha sido salvo no editor — resolvido salvando (Ctrl+S). Lição: sempre confirmar que o arquivo foi salvo em disco antes de testar, não só editado na tela.
+2. Processos antigos do servidor de desenvolvimento (de testes anteriores) ficaram "presos" ouvindo a porta 5000, fazendo as requisições de teste caírem em processos aleatórios e desatualizados em vez do processo atual. Resolvido matando todos os processos Python antigos e testando numa porta nova e limpa.
 
 ## Glossário rápido
 
@@ -1003,3 +1049,6 @@ No `base.html`:
 | **Open Graph (`og:*`)** | Conjunto de tags de metadados que controla como um link aparece quando compartilhado em redes sociais e apps de mensagem (título, descrição, imagem). |
 | **Dados estruturados / JSON-LD / `schema.org`** | Um bloco de dados (formato JSON) embutido na página que descreve seu conteúdo de forma explícita para os buscadores (ex: "esta página é sobre uma Pessoa chamada X") — usa o vocabulário padrão do `schema.org`. |
 | **Google Search Console** | Painel gratuito do Google (console.google.com) para verificar a propriedade de um site, enviar seu `sitemap.xml` e pedir indexação manual de páginas — o jeito mais rápido de acelerar o aparecimento nas buscas. |
+| **SMTP** | Protocolo padrão usado para enviar e-mails. Um servidor SMTP (ex: `smtp.gmail.com`) recebe a mensagem de uma aplicação e a encaminha até a caixa de entrada do destinatário. |
+| **Senha de App (Google)** | Senha de 16 caracteres gerada separadamente da senha normal da conta Google, usada para autenticar aplicações (como o nosso site) via SMTP. Exige verificação em duas etapas ativada na conta. |
+| **`Reply-To`** | Cabeçalho de e-mail que define para qual endereço uma resposta deve ir, caso seja diferente do remetente original (`From`). Usado aqui para que responder a notificação do formulário vá direto para quem o preencheu. |
